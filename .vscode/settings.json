@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "kubernetes://schema/v1%40service": "file:///home/thaiqu/Projects/3-Personal/k3s-practice/nginx-k3s.yaml"
+    }
+}
