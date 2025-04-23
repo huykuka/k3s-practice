@@ -19,6 +19,7 @@ spec:
       containers:
         - name: mosquito
           image: eclipse-mosquitto:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1883
           volumeMounts:

@@ -7,7 +7,7 @@ metadata:
   labels:
     app: node-red
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: node-red
@@ -19,6 +19,7 @@ spec:
       containers:
         - name: node-red
           image: nodered/node-red:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1880
           volumeMounts:
@@ -46,6 +47,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  storageClassName: local-path
 
 ---
 apiVersion: v1
