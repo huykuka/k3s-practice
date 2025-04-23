@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb
+  namespace: iot-monitoring
+  labels:
+    app: influxdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+        - name: influxdb
+          image: influxdb:latest
+          ports:
+            - containerPort: 8686
+          resources:
+            limits: 
+              memory: "128Mi"
+              cpu: "256m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  namespace: iot-monitoring
+  labels:
+    app: influxdb
+spec:
+  type: NodePort
+  selector:
+    app: influxdb
+  ports:
+    - protocol: TCP
+      port: 8686
+      targetPort: 8686
+      nodePort: 30037
+---
+

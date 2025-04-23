@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquito
+  namespace: iot-monitoring
+  labels:
+    app: mosquito
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mosquito
+  template:
+    metadata:
+      labels:
+        app: mosquito
+    spec:
+      containers:
+        - name: mosquito
+          image: eclipse-mosquitto:latest
+          ports:
+            - containerPort: 1883
+          volumeMounts:
+            - name: mosquitto-config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "256m"
+      volumes:
+        - name: mosquitto-config
+          configMap:
+            name: mosquitto-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: iot-monitoring
+data:
+  mosquitto.conf: |
+    listener 1883
+    allow_anonymous true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquito
+  namespace: iot-monitoring
+  labels:
+    app: mosquito
+spec:
+  type: NodePort
+  selector:
+    app: mosquito
+  ports:
+    - protocol: TCP
+      port: 1883
+      targetPort: 1883
+      nodePort: 30035
