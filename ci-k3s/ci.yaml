@@ -1,0 +1,98 @@
+---
+# ResourceQuota to limit total resources used by all GitHub runners
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: github-runner-quota
+  namespace: ci-k3s
+spec:
+  hard:
+    requests.cpu: "8" # Total CPU that can be requested by all pods
+    requests.memory: 16Gi # Total memory that can be requested by all pods
+    limits.cpu: "12" # Total CPU limit across all pods
+    limits.memory: 24Gi # Total memory limit across all pods
+    pods: "15" # Maximum number of pods allowed
+
+---
+# LimitRange to set default resource constraints for containers
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: github-runner-limits
+  namespace: ci-k3s
+spec:
+  limits:
+    - default: # Default limits if not specified
+        cpu: "1"
+        memory: "1Gi"
+      defaultRequest: # Default requests if not specified
+        cpu: "500m"
+        memory: "512Mi"
+      max: # Maximum allowed resource for any container
+        cpu: "2"
+        memory: "4Gi"
+      min: # Minimum required resource for any container
+        cpu: "100m"
+        memory: "128Mi"
+      type: Container
+
+---
+# GitHub Runner Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner
+  namespace: ci-k3s
+  labels:
+    app: github-runner
+spec:
+  selector:
+    matchLabels:
+      app: github-runner
+  replicas: 1 # Reduced to minimum to help with disk pressure
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      containers:
+        - name: github-runner
+          image: myoung34/github-runner:latest # Official GitHub-provided runner or alternative
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          env:
+            - name: REPO_URL
+              value: "https://github.com/huykuka/db-backup-restore"
+            - name: RUNNER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: RUNNER_LABELS
+              value: "k3s,self-hosted,linux"
+            - name: ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-runner-token
+                  key: GITHUB_PAT
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: work-dir
+              mountPath: /home/runner/_work
+      volumes:
+        # Optional: Docker socket for Docker-in-Docker operations
+        # Comment out if Docker socket is not available in your k3s setup
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        # Using emptyDir for work directory
+        # This means data will be lost when pod is deleted
+        - name: work-dir
+          emptyDir: {}

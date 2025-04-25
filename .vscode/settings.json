@@ -1,5 +1,10 @@
 {
     "yaml.schemas": {
-        "kubernetes://schema/v1%40service": "file:///home/thaiqu/Projects/3-Personal/k3s-practice/nginx-k3s.yaml"
+        "kubernetes": "*.yaml",
+        "kubernetes://schema/v1%40service": "file:///home/thaiqu/Projects/3-Personal/k3s-practice/nginx-k3s.yaml",
+        "kubernetes://schema/v1%40persistentvolumeclaim": [
+            "file:///home/thaiqu/Projects/3-Personal/k3s-practice/iot-monitoring-dashboard/influx-db.yaml",
+            "file:///home/thaiqu/Projects/3-Personal/k3s-practice/iot-monitoring-dashboard/node-red.yaml"
+        ]
     }
 }
